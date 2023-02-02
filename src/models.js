@@ -9,7 +9,7 @@ export class Book {
     this.thumbnail = opts.thumbnail || "";
     this.categories = opts.categories ? [...opts.categories] : [];
     this.tags = opts.tags ? [...opts.tags] : [];
-    this.price =  {};
+    this.price = {};
     this.price.amount = opts.price ? opts.price.amount : undefined;
     this.price.currencyCode = opts.price ? opts.price.currencyCode : undefined;
   }
@@ -17,6 +17,7 @@ export class Book {
 
 export class Author {
   constructor(opts) {
+    this.id = opts.id || "";
     this.fio = opts.fio || "";
     this.birthday = opts.birthday || "";
     this.sex = opts.sex || "";

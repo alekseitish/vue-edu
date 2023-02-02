@@ -1,24 +1,28 @@
 <template>
-  <div class="my-card row mb-3 py-2 " @click="$emit('select-card', props.book.id)">
+  <div
+    class="my-card row mb-3 py-2"
+    @click="$emit('select-card', props.book.id)"
+  >
     <div class="col-auto">
-      <img :src="props.book.thumbnail" class="rounded" alt="thumbnail">
+      <img :src="props.book.thumbnail" class="rounded" alt="thumbnail" />
     </div>
     <div class="col">
       <h5 class="">{{ props.book.title }}</h5>
-      <p data-bs-toggle="popover" data-bs-trigger="hover" :data-bs-content="props.book.description">
-        {{ desc }}
-      </p>
+      {{ desc }}
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn-close" @click="onRemove"></button>
     </div>
   </div>
 </template>
 
 <script setup>
-
 import { computed } from "vue";
 
 const props = defineProps({
-  book: { type: Object, required: true }
+  book: { type: Object, required: true },
 });
+const emit = defineEmits(["select-card", "remove-card"]);
 
 const desc = computed(() => {
   return props.book.description.length > 300
@@ -26,6 +30,11 @@ const desc = computed(() => {
     : props.book.description;
 });
 
+function onRemove(e) {
+  e.stopPropagation();
+  e.target.blur();
+  emit("remove-card", props.book.id);
+}
 </script>
 
 <style lang="scss" scoped>
@@ -35,8 +44,7 @@ const desc = computed(() => {
   cursor: pointer;
 
   &:hover {
-    opacity: .7;
+    opacity: 0.7;
   }
 }
-
 </style>
