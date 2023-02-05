@@ -21,6 +21,7 @@ export const loadBooks = async () => {
         : "",
       thumbnail: item.volumeInfo.imageLinks.thumbnail,
       categories: item.volumeInfo.categories,
+      publishedDate: item.volumeInfo.publishedDate,
       price: {
         amount: item.saleInfo.retailPrice.amount,
         currencyCode: item.saleInfo.retailPrice.currencyCode,
@@ -50,12 +51,12 @@ export const loadAuthors = () => {
     let opts = {
       id: index + 1,
       fio,
-      books: booksIdx.map((idx) => books[idx].id),
+      books: booksIdx.map((idx) => ({id: books[idx].id, title: books[idx].title })),
     };
     const author = new Author(opts);
     for (let i in booksIdx) {
       const idx = booksIdx[i];
-      books[idx].authors.push({ id: index + 1 });
+      books[idx].authors.push({ id: index + 1, fio });
     }
     return author;
   });
@@ -82,27 +83,32 @@ export const getBooks = async () => {
 };
 export const getBook = (id) =>
   new Promise((resolve) => {
-    setTimeout(() => resolve(getById(books, id)), 0);
+    setTimeout(() => resolve(getById(books, id)), 100);
   });
 export const addBook = (_book) => {
   const book = new Book(_book);
   book.id = books.length + 1;
   books.push(book);
+  books = books.slice();
   return new Promise((resolve) => {
-    setTimeout(() => resolve(books), 0);
+    setTimeout(() => resolve(books), 100);
   });
 };
 export const updateBook = (_book) => {
   const book = getById(books, _book.id);
   Object.assign(book, _book);
   return new Promise((resolve) => {
-    setTimeout(() => resolve(books), 0);
+    setTimeout(() => resolve(books), 100);
   });
 };
 export const removeBook = (id) => {
   books = books.filter((book) => id !== book.id);
+  for (let idx in  authors) {
+    authors[idx].books = authors[idx].books.filter(a => a.id !== id)
+  }
+  authors = authors.slice();
   return new Promise((resolve) => {
-    setTimeout(() => resolve(books), 0);
+    setTimeout(() => resolve({ books, authors }), 100);
   });
 };
 export const getAuthors = () => {
@@ -110,26 +116,31 @@ export const getAuthors = () => {
 };
 export const getAuthor = (id) =>
   new Promise((resolve) => {
-    setTimeout(() => resolve(getById(authors, id)), 0);
+    setTimeout(() => resolve(getById(authors, id)), 100);
   });
 export const addAuthor = (_author) => {
   const author = new Author(_author);
   author.id = authors.length + 1;
   authors.push(author);
+  authors = authors.slice();
   return new Promise((resolve) => {
-    setTimeout(() => resolve(authors), 0);
+    setTimeout(() => resolve(authors), 100);
   });
 };
 export const updateAuthor = (_author) => {
   const author = getById(authors, _author.id);
   Object.assign(author, _author);
   return new Promise((resolve) => {
-    setTimeout(() => resolve(authors), 0);
+    setTimeout(() => resolve(authors), 100);
   });
 };
 export const removeAuthor = (id) => {
   authors = authors.filter((author) => id !== author.id);
+  for (let idx in  books) {
+    books[idx].authors = books[idx].authors.filter(a => a.id !== id)
+  }
+  books = books.slice();
   return new Promise((resolve) => {
-    setTimeout(() => resolve(authors), 0);
+    setTimeout(() => resolve({ books, authors }), 100);
   });
 };

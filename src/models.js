@@ -9,9 +9,10 @@ export class Book {
     this.thumbnail = opts.thumbnail || "";
     this.categories = opts.categories ? [...opts.categories] : [];
     this.tags = opts.tags ? [...opts.tags] : [];
+    this.publishedDate =opts.publishedDate || "";
     this.price = {};
-    this.price.amount = opts.price ? opts.price.amount : undefined;
-    this.price.currencyCode = opts.price ? opts.price.currencyCode : undefined;
+    this.price.amount = opts.price ? opts.price.amount : 0;
+    this.price.currencyCode = opts.price ? opts.price.currencyCode : "RUB";
   }
 }
 

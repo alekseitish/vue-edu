@@ -7,11 +7,15 @@
       <img :src="props.book.thumbnail" class="rounded" alt="thumbnail" />
     </div>
     <div class="col">
-      <h5 class="">{{ props.book.title }}</h5>
-      {{ desc }}
-    </div>
-    <div class="col-auto">
-      <button type="button" class="btn-close" @click="onRemove"></button>
+      <h5>{{ props.book.title }}</h5>
+      <h6>{{ authors }}</h6>
+      <p>{{ desc }}</p>
+      <em> {{ categories }}</em>
+      <div class="d-flex justify-content-between mt-1">
+        <div>ISBN: {{ props.book.ISBN }}</div>
+        <div>{{ props.book.publishedDate }}</div>
+        <div>{{ price }}</div>
+      </div>
     </div>
   </div>
 </template>
@@ -24,17 +28,18 @@ const props = defineProps({
 });
 const emit = defineEmits(["select-card", "remove-card"]);
 
+const authors = computed(() =>
+  props.book.authors
+    ? props.book.authors.map(author => author.fio).join(", ")
+    : ""
+);
 const desc = computed(() => {
-  return props.book.description.length > 300
-    ? props.book.description.slice(0, 300) + "..."
+  return props.book.description.length > 200
+    ? props.book.description.slice(0, 200) + "..."
     : props.book.description;
 });
-
-function onRemove(e) {
-  e.stopPropagation();
-  e.target.blur();
-  emit("remove-card", props.book.id);
-}
+const categories = computed(() => props.book.categories ? props.book.categories.join(", ") : "");
+const price = computed(() => `${props.book.price.amount} ${props.book.price.currencyCode}`)
 </script>
 
 <style lang="scss" scoped>

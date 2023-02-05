@@ -13,6 +13,6 @@ export const leftMenuItems = [
   },
   {
     title: "Добавить автора",
-    val: "author-add"
+    val: "author-edit"
   },
 ]

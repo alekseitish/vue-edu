@@ -1,6 +1,7 @@
 <template>
   <div class="col-auto px-0">
     <div id="sidebar">
+      <slot name="before"></slot>
       <div id="sidebar-nav" class="list-group border-0 rounded-0 text-sm-start">
         <a
           v-for="(item, index) in props.items"
@@ -13,6 +14,7 @@
           <span>{{ item.title }}</span>
         </a>
       </div>
+      <slot name="after"></slot>
     </div>
   </div>
 </template>
