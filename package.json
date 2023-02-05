@@ -10,6 +10,9 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.6",
+    "bootstrap": "^5.2.3",
+    "bootstrap-icons": "^1.10.3",
     "vue": "^3.2.45"
   },
   "devDependencies": {
@@ -20,7 +23,8 @@
     "eslint": "^8.22.0",
     "eslint-plugin-vue": "^9.3.0",
     "jsdom": "^20.0.3",
-    "prettier": "^2.7.1",
+    "prettier": "2.8.3",
+    "sass": "^1.57.1",
     "vite": "^4.0.0",
     "vitest": "^0.25.6"
   }
