@@ -2,14 +2,16 @@ import { Author, Book } from "@/models";
 import { getById } from "@/helper";
 
 let books = [];
+let isLoadedBooks = false;
 let authors = [];
+let isLoadedAuthors = false;
 
 export const loadBooks = async () => {
   const data = await fetch(
     "https://www.googleapis.com/books/v1/volumes?q=programming&filter=paid-ebooks&printType=books"
   );
   const { items } = await data.json();
-  return items.map((item, idx) => {
+  books = items.map((item, idx) => {
     const opts = {
       id: idx + 1,
       title: item.volumeInfo.title,
@@ -29,9 +31,9 @@ export const loadBooks = async () => {
     };
     return new Book(opts);
   });
+  isLoadedBooks = true;
+  return books;
 };
-
-(function () {})();
 
 export const loadAuthors = () => {
   const _authors = books.reduce((acc, item, index, arr) => {
@@ -51,7 +53,10 @@ export const loadAuthors = () => {
     let opts = {
       id: index + 1,
       fio,
-      books: booksIdx.map((idx) => ({id: books[idx].id, title: books[idx].title })),
+      books: booksIdx.map((idx) => ({
+        id: books[idx].id,
+        title: books[idx].title,
+      })),
     };
     const author = new Author(opts);
     for (let i in booksIdx) {
@@ -63,10 +68,8 @@ export const loadAuthors = () => {
 };
 
 let _books = (function () {
-  const loadedBooks = loadBooks();
   return new Promise((resolve) => {
-    loadedBooks.then((data) => {
-      books = data;
+    loadBooks().then((data) => {
       resolve(data);
     });
   });
@@ -74,16 +77,29 @@ let _books = (function () {
 let _authors = new Promise((resolve) => {
   _books.then(() => {
     authors = loadAuthors();
+    isLoadedAuthors = true;
     resolve(authors);
   });
 });
 
 export const getBooks = async () => {
-  return _books;
+  return isLoadedBooks
+    ? new Promise((resolve) => {
+        setTimeout(() => resolve(books), 100);
+      })
+    : _books;
 };
 export const getBook = (id) =>
   new Promise((resolve) => {
-    setTimeout(() => resolve(getById(books, id)), 100);
+    if (isLoadedBooks) {
+      setTimeout(() => {
+        resolve(getById(books, id));
+      }, 100);
+      return;
+    }
+    getBooks().then((books) => {
+      resolve(getById(books, id));
+    });
   });
 export const addBook = (_book) => {
   const book = new Book(_book);
@@ -98,13 +114,13 @@ export const updateBook = (_book) => {
   const book = getById(books, _book.id);
   Object.assign(book, _book);
   return new Promise((resolve) => {
-    setTimeout(() => resolve(books), 100);
+    setTimeout(() => resolve(book), 100);
   });
 };
 export const removeBook = (id) => {
   books = books.filter((book) => id !== book.id);
-  for (let idx in  authors) {
-    authors[idx].books = authors[idx].books.filter(a => a.id !== id)
+  for (let idx in authors) {
+    authors[idx].books = authors[idx].books.filter((a) => a.id !== id);
   }
   authors = authors.slice();
   return new Promise((resolve) => {
@@ -112,11 +128,21 @@ export const removeBook = (id) => {
   });
 };
 export const getAuthors = () => {
-  return _authors;
+  return isLoadedAuthors
+    ? new Promise((resolve) => {
+        setTimeout(() => resolve(authors), 100);
+      })
+    : _authors;
 };
 export const getAuthor = (id) =>
   new Promise((resolve) => {
-    setTimeout(() => resolve(getById(authors, id)), 100);
+    if (isLoadedBooks) {
+      setTimeout(() => resolve(getById(authors, id)), 100);
+      return;
+    }
+    getAuthors().then((authers) => {
+      resolve(getById(authers, id));
+    });
   });
 export const addAuthor = (_author) => {
   const author = new Author(_author);
@@ -136,8 +162,8 @@ export const updateAuthor = (_author) => {
 };
 export const removeAuthor = (id) => {
   authors = authors.filter((author) => id !== author.id);
-  for (let idx in  books) {
-    books[idx].authors = books[idx].authors.filter(a => a.id !== id)
+  for (let idx in books) {
+    books[idx].authors = books[idx].authors.filter((a) => a.id !== id);
   }
   books = books.slice();
   return new Promise((resolve) => {

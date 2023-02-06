@@ -1,18 +1,22 @@
 export const leftMenuItems = [
   {
     title: "Список книг",
-    val: "book-list"
+    path: "book-list",
+    name: "bookList",
   },
   {
     title: "Добавить книгу",
-    val: "book-edit"
+    path: "book-edit",
+    name: "bookEdit",
   },
   {
     title: "Список авторов",
-    val: "author-list"
+    path: "author-list",
+    name: "authorList",
   },
   {
     title: "Добавить автора",
-    val: "author-edit"
+    path: "author-edit",
+    name: "authorEdit",
   },
 ]

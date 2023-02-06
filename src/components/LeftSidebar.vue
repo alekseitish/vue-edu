@@ -6,7 +6,7 @@
         <a
           v-for="(item, index) in props.items"
           :key="item.val"
-          @click="$emit('select-item', index)"
+          @click="$emit('select-item', item)"
           class="list-group-item border-end-0 border-top-0 d-inline-block text-truncate"
           data-bs-parent="#sidebar"
           href="#"
