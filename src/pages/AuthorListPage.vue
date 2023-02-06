@@ -1,21 +1,35 @@
 <template>
     <div class="row justify-content-start">
       <author-card
-        v-for="(author, index) in props.authors"
+        v-for="(author, index) in authors"
         :author="author"
         :key="index"
-        @to-edit="$emit('to-edit', $event)"
-        @remove-card="$emit('remove-author', $event)"
+        @to-edit="toEdit"
+        @remove-card="onRemove"
       />
     </div>
 </template>
 
 <script setup>
 import AuthorCard from "@/components/AuthorCard.vue";
+import { onBeforeMount, ref } from "vue";
+import { getAuthors, removeAuthor } from "@/api";
+import { useRouter } from "vue-router";
 
-const props = defineProps({
-  authors: { type: Array, required: true },
-});
+onBeforeMount(async () => {
+  authors.value = await getAuthors();
+})
+const router = useRouter();
+
+const authors = ref([]);
+
+function toEdit(id) {
+  router.push({name:"authorEdit", params:{id}})
+}
+async function onRemove(id) {
+  const {authors: authorList} = await removeAuthor(id);
+  authors.value = authorList;
+}
 </script>
 
 <style scoped></style>

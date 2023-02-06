@@ -1,15 +1,16 @@
 <template>
-  <form class="row" @submit.prevent="onSubmit">
-    <div v-if="props.view && props.book.id" class="ps-2 mb-2">
+  <spinner v-if="isLoading"/>
+  <form v-else class="row" @submit.prevent="onSubmit">
+    <div v-if="view && book.id" class="ps-2 mb-2">
       <button
         type="button"
         class="btn btn-outline-primary bi bi-pencil"
-        @click="$emit('to-edit')"
+        @click="toEdit"
       />
       <button
         type="button"
         class="btn btn-outline-danger bi bi-trash3 ms-2"
-        @click="$emit('remove-book', props.book.id)"
+        @click="onRemove"
       />
     </div>
     <div class="row mb-3">
@@ -27,9 +28,7 @@
           </div>
         </div>
         <div class="d-flex align-items-center" :class="classes.row">
-          <h6 class="col-auto" :class="props.view ? 'mb-0' : 'mb-1'">
-            Автор(ы)
-          </h6>
+          <h6 class="col-auto" :class="view ? 'mb-0' : 'mb-1'">Автор(ы)</h6>
           <span class="col">
             <span
               v-for="(author, index) in book.authors"
@@ -41,7 +40,7 @@
                 <button
                   type="button"
                   class="btn bi bi-trash3 px-0 pt-1 text-secondary"
-                  v-if="!props.view"
+                  v-if="!view"
                   @click="clearAuthor(author.id)"
               /></span>
               <span class="" v-if="index + 1 < book.authors.length"> , </span>
@@ -49,8 +48,8 @@
             <button
               type="button"
               class="btn ms-1 col-auto bi bi-plus-lg text-secondary"
-              v-if="!props.view"
-              @click="showModalAddAuthor = true"
+              v-if="!view"
+              @click="onAddAuthor"
             />
           </span>
         </div>
@@ -104,7 +103,7 @@
         </div>
         <div class="row">
           <h6 for="price" class="col-auto col-form-label">Цена</h6>
-          <div v-if="props.view" class="col-auto">
+          <div v-if="view" class="col-auto">
             <input
               type="text"
               class="form-control-plaintext"
@@ -112,7 +111,7 @@
               @input="onInputAmount"
             />
           </div>
-          <div v-if="!props.view" class="col-auto">
+          <div v-if="!view" class="col-auto">
             <input
               type="text"
               class="form-control"
@@ -120,7 +119,7 @@
               @input="onInputAmount"
             />
           </div>
-          <div v-if="!props.view" class="col-auto">
+          <div v-if="!view" class="col-auto">
             <select
               class="form-select"
               :value="book.price.currencyCode"
@@ -135,7 +134,7 @@
       </div>
       <div class="col-4">
         <img :src="thumbnail" class="rounded" alt="thumbnail" />
-        <template v-if="!props.view">
+        <template v-if="!view">
           <h6 for="thumbnail" class="form-label mt-2">Адрес картинки</h6>
           <input
             type="text"
@@ -148,7 +147,7 @@
     </div>
     <div>
       <h6 for="description" class="form-label">Описание</h6>
-      <p v-if="props.view" id="title" class="form-label">
+      <p v-if="view" id="title" class="form-label">
         <em
           >{{ desc }}
           <span
@@ -169,7 +168,7 @@
         rows="8"
       ></textarea>
     </div>
-    <div class="d-flex justify-content-end mt-3" v-if="!props.view">
+    <div class="d-flex justify-content-end mt-3" v-if="!view">
       <button class="btn btn-outline-primary me-2" @click="onCancel">
         Отменить
       </button>
@@ -177,7 +176,7 @@
     </div>
   </form>
   <item-list-modal
-    :items="authorsList"
+    :items="authorsListFiltrated"
     :show="showModalAddAuthor"
     @hide="showModalAddAuthor = false"
     @select-item="onSelectAuthor"
@@ -185,32 +184,53 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { Book } from "@/models";
-import { strToArr, updateState } from "@/helper";
-import { getAuthor } from "@/api";
+import { fillFromQuery, strToArr, updateState } from "@/helper";
+import { getAuthor, getAuthors, getBook, removeBook, updateBook } from "@/api";
 import ItemListModal from "@/components/ItemListModal.vue";
+import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
+import Spinner from "@/components/spinner.vue";
 
 const defaultLink = "/default-img.png";
 
 const props = defineProps({
-  book: {
-    type: Object,
-    required: true,
-  },
-  authors: {
-    type: Array,
-    default: () => [],
-  },
-  view: { type: Boolean, default: false },
+  id: { type: String, default: null },
 });
 
-const emit = defineEmits(["update-book", "remove-book", "to-edit", "to-view"]);
+onMounted(() => {
+  if (!props.id) {
+    isLoading.value = false;
+    return;
+  }
+  view.value = route.query.hasOwnProperty("view");
+  getBook(props.id).then((data) => {
+    book.value = data;
+    bookCache = Object.assign({}, data);
+    isLoading.value = false;
+  });
+});
+onBeforeRouteUpdate((to, _) => {
+  if (!to.params.id) {
+    bookCache = new Book({});
+    book.value = Object.assign({}, bookCache);
+    view.value = false;
+  }
+});
 
-const book = ref(new Book(props.book));
+const router = useRouter();
+const route = useRoute();
+
+const book = ref(new Book({}));
+let bookCache = new Book({});
+
+const authorList = ref([]);
+
+const view = ref(false);
 
 const isShortDesc = ref(false);
 const showModalAddAuthor = ref(false);
+const isLoading = ref(true);
 
 const desc = computed(() => {
   return !isShortDesc.value &&
@@ -226,9 +246,9 @@ const thumbnail = computed(() =>
   book.value.thumbnail ? book.value.thumbnail : defaultLink
 );
 const classes = computed(() => ({
-  input: props.view ? "form-control-plaintext" : "form-control",
-  row: `row ${props.view ? "" : "mb-3"}`,
-  h6: props.view ? "mb-0" : "",
+  input: view.value ? "form-control-plaintext" : "form-control",
+  row: `row ${view.value ? "" : "mb-3"}`,
+  h6: view.value ? "mb-0" : "",
 }));
 const tags = computed(() =>
   book.value.tags ? book.value.tags.join(", ") : ""
@@ -237,11 +257,16 @@ const categories = computed(() =>
   book.value.categories ? book.value.categories.join(", ") : ""
 );
 
-const authorsList = computed(() =>
-  props.authors
+const authorsListFiltrated = computed(() =>
+  authorList.value
     .filter((author) => !book.value.authors.find((a) => a.id === author.id))
     .map((author) => ({ id: author.id, title: author.fio }))
 );
+
+function toEdit() {
+  router.replace({ query: {} });
+  view.value = false;
+}
 
 function onInputRange(e) {
   book.value[e.target.id] = strToArr(e.target.value);
@@ -262,25 +287,43 @@ function onInputCurrencyCode(e) {
   };
 }
 
-function onSubmit(e) {
+async function onSubmit(e) {
   // book.value.authors = book.value.authors.map((author) => ({ id: author.id }));
-  emit("update-book", book.value);
+  bookCache = await updateBook(book.value);
+  book.value = Object.assign({}, bookCache);
+  router.replace({ query: { view: null } });
+  view.value = true;
 }
 
 function onCancel() {
-  book.value = new Book(props.book);
-  emit("to-view");
+  if (!book.value.id) {
+    router.push({ name: "bookList" });
+    return;
+  }
+  router.replace({ query: { view: null } });
+  book.value = Object.assign({}, bookCache);
+  view.value = true;
+}
+
+async function onRemove() {
+  if (book.value.id) {
+    await removeBook(book.value.id);
+    router.push({ name: "bookList" });
+  }
 }
 
 function clearAuthor(id) {
   book.value.authors = book.value.authors.filter((a) => a.id !== id);
 }
-
+async function onAddAuthor() {
+  authorList.value = await getAuthors();
+  showModalAddAuthor.value = true;
+}
 async function onSelectAuthor(a) {
   const authors = book.value.authors.slice();
   const author = await getAuthor(a.id);
   authors.push({ id: author.id, fio: author.fio });
-  updateState(book,"authors", authors);
+  updateState(book, "authors", authors);
 }
 
 watch(
@@ -292,6 +335,7 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+
 .short-desc {
   cursor: pointer;
   color: #15c;
@@ -301,4 +345,5 @@ watch(
 .author {
   white-space: nowrap;
 }
+
 </style>

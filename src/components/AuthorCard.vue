@@ -9,7 +9,7 @@
       <button
         type="button"
         class="btn btn-outline-danger bi bi-trash3 ms-1"
-        @click="$emit('remove-book', props.author.id)"
+        @click="$emit('remove-card', props.author.id)"
       />
     </div>
     <div class="card-body">
@@ -18,7 +18,7 @@
         <span>Дата рождения: </span><em>{{ props.author.birthday }}</em>
       </p>
       <p class="card-text">
-        <span>Пол: </span><em>{{ props.author.sex }}</em>
+        <span>Пол: </span><em>{{ sex }}</em>
       </p>
       <p class="card-text">
         <span>Страна: </span><em>{{ props.author.residence }}</em>
@@ -38,6 +38,9 @@ const props = defineProps({
 });
 const emit = defineEmits(["to-edit", "remove-card"]);
 
+const sex = computed(() => {
+  return props.author.sex === "male" ? "мужской" : "женский";
+})
 const authorsBooks = computed(() =>
   props.author.books ? props.author.books.map((b) => b.title).join(", ") : ""
 );

@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar navbar-dark bg-primary">
     <div class="container-fluid">
-      <div class="navbar-brand m-auto">{{ props.title }}</div>
+      <div class="navbar-brand m-auto py-0">{{ props.title }}</div>
     </div>
   </nav>
 </template>
@@ -12,4 +12,8 @@ const props = defineProps({
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.navbar-brand {
+  font-size: 1.1rem;
+}
+</style>

@@ -63,19 +63,19 @@
         <button
           type="button"
           class="btn ms-1 col-auto bi bi-plus-lg text-secondary"
-          @click="showModalAddBook = true"
+          @click="onAddBook"
         />
       </span>
     </div>
     <div class="d-flex justify-content-end mt-3">
-      <button class="btn btn-outline-primary me-2" @click="onCancel">
+      <button class="btn btn-outline-primary me-2" @click.prevent="onCancel">
         Отменить
       </button>
       <button class="btn btn-primary" type="submit">Сохранить</button>
     </div>
   </form>
   <item-list-modal
-    :items="bookList"
+    :items="bookListFiltrated"
     :show="showModalAddBook"
     @hide="showModalAddBook = false"
     @select-item="onSelectBook"
@@ -83,41 +83,70 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { Author, Book } from "@/models";
 import { updateState } from "@/helper";
 import ItemListModal from "@/components/ItemListModal.vue";
-import { getBook } from "@/api";
+import { addAuthor, getAuthor, getBook, getBooks, updateAuthor } from "@/api";
+import { onBeforeRouteUpdate } from "vue-router";
+import router from "@/router";
 
 const props = defineProps({
-  author: { type: Object, required: true },
-  books: { type: Array, default: () => [] },
+  id: { type: String, default: "" },
 });
-const emit = defineEmits(["add-author", "update-author", "to-list"]);
 
-const author = ref(new Author(props.author));
+onMounted(() => {
+  if (!props.id) {
+    isLoading.value = false;
+    return;
+  }
+  getAuthor(props.id).then((data) => {
+    author.value = data;
+    isLoading.value = false;
+  });
+});
+onBeforeRouteUpdate((to, _) => {
+  if (!to.params.id) {
+    author.value = new Author({});
+  }
+});
+
+const author = ref(new Author({}));
+const books = ref([]);
 const showModalAddBook = ref(false);
+const isLoading = ref(true);
 
-const bookList = computed(() =>
-  props.books
+const bookListFiltrated = computed(() =>
+  books.value
     .filter((book) => !author.value.books.find((b) => b.id === book.id))
     .map((book) => ({ id: book.id, title: book.title }))
 );
+
 async function onSelectBook(b) {
   const books = author.value.books.slice();
   const book = await getBook(b.id);
-  books.push({id: book.id, title: book.title})
+  books.push({ id: book.id, title: book.title });
   updateState(author, "books", books);
 }
+
 function clearBook(id) {
   author.value.books = author.value.books.filter((b) => b.id !== id);
 }
-function onCancel() {
-  author.value = new Author(props.author);
-  emit("to-list");
+async function onAddBook() {
+  books.value = await getBooks();
+  showModalAddBook.value = true;
 }
+function onCancel() {
+  router.push({ name: "authorList" });
+}
+
 function onSubmit(e) {
-  emit("update-author", author.value);
+  if (author.value.id) {
+    updateAuthor(author.value);
+  } else {
+    addAuthor(author.value);
+  }
+  router.push({ name: "authorList" });
 }
 
 watch(
