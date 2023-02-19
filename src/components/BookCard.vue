@@ -39,7 +39,7 @@ const desc = computed(() => {
     : props.book.description;
 });
 const categories = computed(() => props.book.categories ? props.book.categories.join(", ") : "");
-const price = computed(() => `${props.book.price.amount} ${props.book.price.currencyCode}`)
+const price = computed(() => !!props.book.price.amount ? `${props.book.price.amount} ${props.book.price.currencyCode}` : "")
 </script>
 
 <style lang="scss" scoped>

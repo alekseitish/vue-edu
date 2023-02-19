@@ -85,7 +85,7 @@
               type="text"
               :class="classes.input"
               :value="categories"
-              @input="onInputRange"
+              @change="onInputRange"
             />
           </div>
         </div>
@@ -107,7 +107,7 @@
             <input
               type="text"
               class="form-control-plaintext"
-              :value="book.price.amount + ' ' + book.price.currencyCode"
+              :value="price"
               @input="onInputAmount"
             />
           </div>
@@ -187,7 +187,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { Book } from "@/models";
 import { fillFromQuery, strToArr, updateState } from "@/helper";
-import { getAuthor, getAuthors, getBook, removeBook, updateBook } from "@/api";
+import { addBook, getAuthor, getAuthors, getBook, removeBook, updateBook } from "@/api";
 import ItemListModal from "@/components/ItemListModal.vue";
 import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import Spinner from "@/components/spinner.vue";
@@ -210,11 +210,11 @@ onMounted(() => {
     isLoading.value = false;
   });
 });
-onBeforeRouteUpdate((to, _) => {
-  if (!to.params.id) {
+onBeforeRouteUpdate((to, from) => {
+  view.value = to.query.hasOwnProperty("view");
+  if (!to.params.id && to.fullPath !== from.fullPath) {
     bookCache = new Book({});
     book.value = Object.assign({}, bookCache);
-    view.value = false;
   }
 });
 
@@ -232,6 +232,11 @@ const isShortDesc = ref(false);
 const showModalAddAuthor = ref(false);
 const isLoading = ref(true);
 
+const price = computed(() => {
+  const amount = book.value?.price?.amount || "";
+  const currencyCode = book.value?.price?.currencyCode || ""
+  return amount + (!!amount && !!currencyCode ? " " + currencyCode : "");
+})
 const desc = computed(() => {
   return !isShortDesc.value &&
     book.value.description &&
@@ -265,7 +270,6 @@ const authorsListFiltrated = computed(() =>
 
 function toEdit() {
   router.replace({ query: {} });
-  view.value = false;
 }
 
 function onInputRange(e) {
@@ -289,10 +293,13 @@ function onInputCurrencyCode(e) {
 
 async function onSubmit(e) {
   // book.value.authors = book.value.authors.map((author) => ({ id: author.id }));
-  bookCache = await updateBook(book.value);
+  if (book.value.id) {
+    bookCache = await updateBook(book.value);
+  } else {
+    bookCache = await addBook(book.value);
+  }
   book.value = Object.assign({}, bookCache);
-  router.replace({ query: { view: null } });
-  view.value = true;
+  router.replace({ query: { view: null }, params: {id: book.value.id} });
 }
 
 function onCancel() {
@@ -300,9 +307,8 @@ function onCancel() {
     router.push({ name: "bookList" });
     return;
   }
-  router.replace({ query: { view: null } });
   book.value = Object.assign({}, bookCache);
-  view.value = true;
+  router.replace({ query: { view: null }, params: {id: book.value.id} });
 }
 
 async function onRemove() {
@@ -323,7 +329,8 @@ async function onSelectAuthor(a) {
   const authors = book.value.authors.slice();
   const author = await getAuthor(a.id);
   authors.push({ id: author.id, fio: author.fio });
-  updateState(book, "authors", authors);
+  book.value.authors = authors;
+  // updateState(book, "authors", authors);
 }
 
 watch(

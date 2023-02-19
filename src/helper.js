@@ -1,6 +1,6 @@
 export const getById = (arr, id) => {
   if (typeof id === "string") {
-    id = parseInt(id)
+    id = parseInt(id);
     if (isNaN(id)) return null;
   }
   for (let idx in arr) {
@@ -11,7 +11,12 @@ export const getById = (arr, id) => {
   return null;
 };
 
-export const strToArr = (str) => str.replace(/ /g, "").split(",");
+export const strToArr = (str) =>
+  str
+    .replace(/ +/g, " ")
+    .trim()
+    .split(/\s*,\s*/)
+    .filter((item) => item.length > 0);
 
 export const updateState = (target, field, val) => {
   const value = {};

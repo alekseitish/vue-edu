@@ -88,8 +88,9 @@ import { Author, Book } from "@/models";
 import { updateState } from "@/helper";
 import ItemListModal from "@/components/ItemListModal.vue";
 import { addAuthor, getAuthor, getBook, getBooks, updateAuthor } from "@/api";
-import { onBeforeRouteUpdate } from "vue-router";
-import router from "@/router";
+import { onBeforeRouteUpdate, useRouter } from "vue-router";
+
+const router = useRouter();
 
 const props = defineProps({
   id: { type: String, default: "" },
@@ -105,8 +106,8 @@ onMounted(() => {
     isLoading.value = false;
   });
 });
-onBeforeRouteUpdate((to, _) => {
-  if (!to.params.id) {
+onBeforeRouteUpdate((to, from) => {
+  if (!to.params.id && to.fullPath !== from.fullPath ) {
     author.value = new Author({});
   }
 });

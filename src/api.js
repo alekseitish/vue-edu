@@ -101,13 +101,14 @@ export const getBook = (id) =>
       resolve(getById(books, id));
     });
   });
-export const addBook = (_book) => {
+export const
+  addBook = (_book) => {
   const book = new Book(_book);
   book.id = books.length + 1;
   books.push(book);
   books = books.slice();
   return new Promise((resolve) => {
-    setTimeout(() => resolve(books), 100);
+    setTimeout(() => resolve(book), 100);
   });
 };
 export const updateBook = (_book) => {
@@ -136,12 +137,12 @@ export const getAuthors = () => {
 };
 export const getAuthor = (id) =>
   new Promise((resolve) => {
-    if (isLoadedBooks) {
+    if (isLoadedAuthors) {
       setTimeout(() => resolve(getById(authors, id)), 100);
       return;
     }
-    getAuthors().then((authers) => {
-      resolve(getById(authers, id));
+    getAuthors().then((authors) => {
+      resolve(getById(authors, id));
     });
   });
 export const addAuthor = (_author) => {
