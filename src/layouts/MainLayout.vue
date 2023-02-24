@@ -28,7 +28,7 @@
               <input
                 type="search"
                 class="form-control form-control-sm mb-2"
-                placeholder="категория"
+                :placeholder="categoryPlaceholder"
                 :value="searchStrings.category"
                 @input="changeSearch($event, 'category')"
               />
@@ -55,7 +55,7 @@
 import Toolbar from "@/components/Toolbar.vue";
 import LeftSidebar from "@/components/LeftSidebar.vue";
 import { leftMenuItems } from "@/leftmenuitems";
-import { onMounted, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import { fillFromQuery } from "@/helper";
 
@@ -65,13 +65,11 @@ onMounted(() => {
   title.value = item ? item.title  : "Начало"
 
 });
-onBeforeRouteUpdate((to, _) => {
-  isViewSearch.value = to.path.includes("book-list") ? true : false;
 
-});
+const categoryPlaceholder = `категория(и) через ","`
+
 const title = ref("");
 const currentItemMenu = ref(0);
-const isViewSearch = ref(false);
 
 const searchStrings = reactive({
   title: "",
@@ -83,7 +81,7 @@ const searchStrings = reactive({
 const router = useRouter();
 const route = useRoute();
 
-// computed(() => route.path === "book-list");
+const isViewSearch = computed(() => route.path.includes("book-list"));
 
 //TODO: не срабатывает при первом переходе по каждому маршруту, пока кастыль!!!
 async function onSelectItemMenu(item) {

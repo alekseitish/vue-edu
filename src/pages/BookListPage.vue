@@ -13,7 +13,7 @@ import BookCard from "@/components/BookCard.vue";
 import { computed, onBeforeMount, onMounted, reactive, ref } from "vue";
 import { getBooks } from "@/api";
 import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
-import { fillFromQuery } from "@/helper";
+import { fillFromQuery, strToArr } from "@/helper";
 
 const emit = defineEmits(["select-book", "remove-book"]);
 
@@ -39,21 +39,29 @@ const searchStrings = reactive({
 });
 
 const booksFiltered = computed(() => {
-  return books.value.filter((book) => {
-    return (
-      book.title.toUpperCase().includes(searchStrings.title.toUpperCase()) &&
-      (searchStrings.publishedDate.length === 0 ||
-        new Date(book.publishedDate).getFullYear() ==
-          searchStrings.publishedDate) &&
-      (searchStrings.category.length === 0 ||
-        book.categories.some((ctg) =>
-          ctg.toUpperCase().includes(searchStrings.category.toUpperCase())
-        )) &&
-      (searchStrings.price.length === 0 ||
-        book.price.amount == searchStrings.price)
-    );
-  });
+  return books.value.filter(
+    (book) =>
+      titleFilter(book) &&
+      publishedDateFilter(book) &&
+      categoryFilter(book) &&
+      priceFilter(book)
+  );
 });
+
+const titleFilter = (book) =>
+  book.title.toUpperCase().includes(searchStrings.title.toUpperCase());
+const publishedDateFilter = (book) =>
+  searchStrings.publishedDate.length === 0 ||
+  new Date(book.publishedDate).getFullYear() == searchStrings.publishedDate;
+const categoryFilter = (book) => {
+  if (searchStrings.category.length === 0) return true;
+  const searchCategories = strToArr(searchStrings.category);
+  return searchCategories.every((searchCtg) =>
+    book.categories.some((ctg) => ctg.toUpperCase().includes(searchCtg.toUpperCase()))
+  );
+};
+const priceFilter = (book) =>
+  searchStrings.price.length === 0 || book.price.amount == searchStrings.price;
 
 function onSelectBook(id) {
   router.push({
