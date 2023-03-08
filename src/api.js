@@ -101,8 +101,7 @@ export const getBook = (id) =>
       resolve(getById(books, id));
     });
   });
-export const
-  addBook = (_book) => {
+export const addBook = (_book) => {
   const book = new Book(_book);
   book.id = books.length + 1;
   books.push(book);

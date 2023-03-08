@@ -61,15 +61,13 @@ import { fillFromQuery } from "@/helper";
 
 onMounted(() => {
   fillFromQuery(route.query, searchStrings);
-  const item = leftMenuItems.find(item => route.path.includes(item.path));
-  title.value = item ? item.title  : "Начало"
-
+  const item = leftMenuItems.find((item) => route.path.includes(item.path));
+  title.value = item ? item.title : "Начало";
 });
 
-const categoryPlaceholder = `категория(и) через ","`
+const categoryPlaceholder = `категория(и) через ","`;
 
 const title = ref("");
-const currentItemMenu = ref(0);
 
 const searchStrings = reactive({
   title: "",
@@ -85,7 +83,7 @@ const isViewSearch = computed(() => route.path.includes("book-list"));
 
 //TODO: не срабатывает при первом переходе по каждому маршруту, пока кастыль!!!
 async function onSelectItemMenu(item) {
-  title.value = item.title
+  title.value = item.title;
   try {
     const err = await router.push({ name: item.name });
     if (err) {

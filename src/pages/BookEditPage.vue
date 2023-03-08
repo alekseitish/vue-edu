@@ -1,5 +1,5 @@
 <template>
-  <spinner v-if="isLoading"/>
+  <spinner v-if="isLoading" />
   <form v-else class="row" @submit.prevent="onSubmit">
     <div v-if="view && book.id" class="ps-2 mb-2">
       <button
@@ -186,8 +186,15 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { Book } from "@/models";
-import { fillFromQuery, strToArr, updateState } from "@/helper";
-import { addBook, getAuthor, getAuthors, getBook, removeBook, updateBook } from "@/api";
+import { strToArr } from "@/helper";
+import {
+  addBook,
+  getAuthor,
+  getAuthors,
+  getBook,
+  removeBook,
+  updateBook,
+} from "@/api";
 import ItemListModal from "@/components/ItemListModal.vue";
 import { onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import Spinner from "@/components/spinner.vue";
@@ -234,9 +241,9 @@ const isLoading = ref(true);
 
 const price = computed(() => {
   const amount = book.value?.price?.amount || "";
-  const currencyCode = book.value?.price?.currencyCode || ""
+  const currencyCode = book.value?.price?.currencyCode || "";
   return amount + (!!amount && !!currencyCode ? " " + currencyCode : "");
-})
+});
 const desc = computed(() => {
   return !isShortDesc.value &&
     book.value.description &&
@@ -291,7 +298,7 @@ function onInputCurrencyCode(e) {
   };
 }
 
-async function onSubmit(e) {
+async function onSubmit() {
   // book.value.authors = book.value.authors.map((author) => ({ id: author.id }));
   if (book.value.id) {
     bookCache = await updateBook(book.value);
@@ -299,7 +306,7 @@ async function onSubmit(e) {
     bookCache = await addBook(book.value);
   }
   book.value = Object.assign({}, bookCache);
-  router.replace({ query: { view: null }, params: {id: book.value.id} });
+  router.replace({ query: { view: null }, params: { id: book.value.id } });
 }
 
 function onCancel() {
@@ -308,7 +315,7 @@ function onCancel() {
     return;
   }
   book.value = Object.assign({}, bookCache);
-  router.replace({ query: { view: null }, params: {id: book.value.id} });
+  router.replace({ query: { view: null }, params: { id: book.value.id } });
 }
 
 async function onRemove() {
@@ -342,7 +349,6 @@ watch(
 </script>
 
 <style lang="scss" scoped>
-
 .short-desc {
   cursor: pointer;
   color: #15c;
@@ -352,5 +358,4 @@ watch(
 .author {
   white-space: nowrap;
 }
-
 </style>
